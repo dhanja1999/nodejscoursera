@@ -6,25 +6,23 @@ const connect = mongoose.connect(url,{ useNewUrlParser: true, useUnifiedTopology
 
 connect.then((db)=>{
     console.log('Connected correctly to server ');
-    var newDish = Dishes({
+    Dishes.create({
         name:'Dhananjay',
         description: 'test'
     }
-    );
-    
-    newDish.save()
-        .then((dish)=>{
-            console.log(dish);
-            Dishes.find({}).exec();
-        })
-        .then((dishes)=>{
-            console.log(dishes);
-            return Dishes.remove({});
-        }) 
-        .then(()=>{
-            return mongoose.connection.close();
-        })
-        .catch((err)=>{
-            console.log(err);
-        })
+    )
+    .then((dish)=>{
+        console.log(dish);
+        return Dishes.find({}).exec();
+    })
+    .then((dishes)=>{
+        console.log(dishes);
+        return Dishes.remove({});
+    }) 
+    .then(()=>{
+        return mongoose.connection.close();
+    })
+    .catch((err)=>{
+        console.log(err);
+    })
 });
