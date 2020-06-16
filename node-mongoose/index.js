@@ -12,11 +12,27 @@ connect.then((db)=>{
     }
     )
     .then((dish)=>{
+        console.log("\n first. .then stmt: \n");
         console.log(dish);
-        return Dishes.find({}).exec();
+        return Dishes.findByIdAndUpdate(dish._id,{
+            $set:{ description: "updated dish"}
+        },{
+            new: true
+        }).exec();
     })
-    .then((dishes)=>{
-        console.log(dishes);
+    .then((dish)=>{
+        console.log("\n sec. .then stmt: \n");
+        console.log(dish);
+        dish.comments.push({
+            rating:5,
+            comment: "I'm getting a sinking feeling",
+            author:'Leonardo di capaccio'
+        });
+        return dish.save();
+    })
+    .then((dish)=>{
+        console.log("\n before removing: \n");
+        console.log(dish);
         return Dishes.remove({});
     }) 
     .then(()=>{
