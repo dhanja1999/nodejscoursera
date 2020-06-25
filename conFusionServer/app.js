@@ -13,6 +13,7 @@ var leaderRouter = require('./routes/leaderRouter');
 const mongoose = require('mongoose');
 const Dishes = require('./models/dishes');
 const Promotions = require('./models/promotions');
+const { signedCookies } = require('cookie-parser');
 
 const url = 'mongodb://localhost:27017/conFusion';
 const connect = mongoose.connect(url,{ useNewUrlParser: true, useUnifiedTopology: true });
@@ -32,32 +33,48 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser('12345-67890-09876-54321'));
 
 function auth(req,res,next){
   console.log("\n This is req header\n"+req.headers);
-  var authHeader = req.headers.authorization;
 
-  console.log("\nauthHeader\n"+authHeader);
-  if(!authHeader){
-    var err = new Error('You are not authenticated dude');
-    res.setHeader('WWW-Authenticate','Basic');
-    err.status = 401;
-    return next(err);
-  }
+  if(!req.signedCookies.username){
+    var authHeader = req.headers.authorization;
+    console.log("\nauthHeader\n"+authHeader);
+    
+    if(!authHeader){
+      var err = new Error('You are not authenticated dude');
+      res.setHeader('WWW-Authenticate','Basic');
+      err.status = 401;
+      return next(err);
+    }
 
-  var auth = new Buffer(authHeader.split(' ')[1], 'base64').toString().split(':');
-  var username = auth[0];
-  var password = auth[1];
+    var auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
+    var username = auth[0];
+    var password = auth[1];
 
-  if(username === 'admin' && password==='password'){
-    next();
+    if(username === 'admin' && password==='password'){
+      res.cookie('username','admin',{signed: true});
+      next();
+    }
+    else{
+      var err = new Error('You are not authenticated ');
+      res.setHeader('WWW-Authenticate','Basic');
+      err.status = 401;
+      return next(err);
+    }
   }
   else{
-    var err = new Error('You are not authenticated ');
-    res.setHeader('WWW-Authenticate','Basic');
-    err.status = 401;
-    return next(err);
+    if(req.signedCookies.username === 'admin'){
+      console.log("Cookies are: "+req.cookies);
+      next();
+    }
+    else{
+      var err = new Error('You are not authenticated in last else');
+      res.setHeader('WWW-Authenticate','Basic');
+      err.status = 401;
+      return next(err);
+    }
   }
 
 }
