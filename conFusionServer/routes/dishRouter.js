@@ -169,11 +169,11 @@ dishRouter.route('/:id/comments/:commentId')
             },(err)=>{next(err)})
             .catch((err)=>next(err));
     })
-    .post((req, res, next) => {
+    .post(authenticate.verifyUser,(req, res, next) => {
         res.statusCode = 403;
         res.end(`POST operation not supported on /dishes/`+req.params.dishId+'/comments/'+req.params.commentId);
     })
-    .put((req, res, next) => {
+    .put(authenticate.verifyUser,(req, res, next) => {
         Dishes.findById(req.params.id)
         .then((dish)=>{
             if(dish != null && dish.comments.id(req.params.commentId) != null){
@@ -204,7 +204,7 @@ dishRouter.route('/:id/comments/:commentId')
             }
         },(err)=>{next(err)})
     })
-    .delete((req, res, next) => {
+    .delete(authenticate.verifyUser,authenticate.verifyAdmin,(req, res, next) => {
         Dishes.findById(req.params.id)
             .then((dish)=>{
                 if(dish != null && dish.comments.id(req.params.commentId) != null){
